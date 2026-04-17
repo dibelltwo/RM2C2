@@ -1,0 +1,618 @@
+---
+title: "RM2C2 Sample Data Cleaning and QA Report"
+format:
+  html:
+    toc: true
+    df-print: paged
+params:
+  raw_dir: "data_sample"
+  output_dir: "output_sample"
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+## Cleaning Workflow
+
+This report follows the same step-by-step pipeline each time it is run.
+
+1. Import raw data from the sample folders.
+   Read `.txt` files from `Survey`, `Symbol Search`, `Dot Memory`, and `Color Shapes`.
+
+2. Parse the raw files into structured tables.
+   Survey files become one row per visit.
+   Cognitive task files become one row per trial.
+
+3. Extract visit metadata from each filename.
+   Capture `user_id`, `session`, visit date, file timestamp, and a stable `visit_id`.
+
+4. Standardize data fields.
+   Normalize IDs and keep the raw sources aligned to a common visit-level structure.
+
+5. Clean the survey data.
+   Keep visit-level metadata such as start and end times, exit status, device information, and self-report answers.
+
+6. Score and summarize `Symbol Search`.
+   Use `score_symbol_search()` and `summary_symbol_search()` to create one visit-level row.
+
+7. Score and summarize `Dot Memory`.
+   Use `score_dot_memory()` and `summary_dot_memory()` to create one visit-level row.
+
+8. Score and summarize `Color Shapes`.
+   Use `score_color_shapes()` and `summary_color_shapes()` to create one visit-level row.
+
+9. Stitch all visit-level data together.
+   Join survey and task summaries using `user_id`, `session`, and `visit_id`.
+
+10. Generate the final cleaned dataset.
+    Write the cleaned visit-level CSV into `output_sample/`.
+
+11. Run red-flag quality checks.
+    Check for missing tasks, unexpected trial counts, survey issues, response-time outliers, low-accuracy patterns, and duplicate visit rows.
+
+12. Export quality-control outputs.
+    Write red-flag CSV files for visit-level review and participant-level summary.
+
+13. Render the final report.
+    Produce an HTML file that documents the run, outputs, and records needing review.
+
+## Researcher Command
+
+Run this from the project root:
+
+```bash
+Rscript -e "library(rmarkdown); render('clean_sample_data.qmd', output_format='html_document', params=list(raw_dir='data_sample', output_dir='output_sample'))"
+```
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(purrr)
+library(readr)
+library(stringr)
+library(tibble)
+library(knitr)
+```
+
+## Run Settings
+
+```{r}
+raw_dir <- params$raw_dir
+output_dir <- params$output_dir
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+
+timestamp <- format(Sys.time(), "%Y-%m-%d-T%H-%M-%S")
+
+# The package is not installed in this repo-only workflow, so provide a safe
+# fallback for sourced scoring functions that call packageVersion("RM2C2").
+packageVersion <- function(pkg) {
+  if (identical(pkg, "RM2C2")) {
+    return(numeric_version("0.0.0.9000"))
+  }
+  utils::packageVersion(pkg)
+}
+
+source(file.path("R", "add_to.R"))
+source(file.path("R", "mult_by.R"))
+source(file.path("R", "distance.R"))
+source(file.path("R", "SDT_adj.R"))
+source(file.path("R", "score_symbol_search.R"))
+source(file.path("R", "summary_symbol_search.R"))
+source(file.path("R", "score_dot_memory.R"))
+source(file.path("R", "summary_dot_memory.R"))
+source(file.path("R", "score_color_shapes.R"))
+source(file.path("R", "summary_color_shape.R"))
+source(file.path("R", "stitch_datasets.R"))
+source(file.path("R", "compliance_report.R"))
+```
+
+```{r}
+expected_trials <- c(
+  "Symbol Search" = 18L,
+  "Dot Memory" = 3L,
+  "Color Shapes" = 10L
+)
+
+task_dirs <- c("Survey", "Symbol Search", "Dot Memory", "Color Shapes")
+task_files <- map(
+  set_names(task_dirs),
+  ~ list.files(file.path(raw_dir, .x), pattern = "txt$", full.names = TRUE)
+)
+```
+
+## Helper Functions
+
+```{r}
+clean_name <- function(x) {
+  x |>
+    str_trim() |>
+    str_to_lower() |>
+    str_replace_all("[^a-z0-9]+", "_") |>
+    str_replace_all("^_|_$", "")
+}
+
+extract_filename_meta <- function(path) {
+  stem <- basename(path) |>
+    str_remove("\\.txt$")
+  pieces <- str_split(stem, "_", simplify = TRUE)
+
+  if (str_starts(stem, "game_")) {
+    task_name <- str_c(pieces[4:(ncol(pieces) - 4)], collapse = "_") |>
+      str_replace_all("_", " ")
+    stamp <- pieces[, ncol(pieces) - 3]
+  } else {
+    task_name <- "Survey"
+    stamp <- pieces[, ncol(pieces) - 3] |>
+      str_replace_all("x", "")
+  }
+
+  visit_date <- str_c(
+    pieces[, ncol(pieces) - 2],
+    pieces[, ncol(pieces) - 1],
+    pieces[, ncol(pieces)],
+    sep = "-"
+  )
+
+  tibble(
+    source_file = path,
+    raw_file_name = basename(path),
+    task_name = task_name,
+    user_id = pieces[, 2],
+    session = pieces[, 3],
+    visit_date = visit_date,
+    file_stamp = stamp,
+    visit_id = str_c(pieces[, 2], pieces[, 3], visit_date, sep = "_")
+  )
+}
+
+parse_kv_string <- function(x, item_sep = ",", kv_sep = ":") {
+  parts <- str_split(x, item_sep, simplify = FALSE)[[1]]
+  parts <- parts[nzchar(str_trim(parts))]
+  keys <- str_extract(parts, paste0("^[^", kv_sep, "]+"))
+  values <- str_replace(parts, paste0("^[^", kv_sep, "]+", kv_sep), "")
+  tibble(key = clean_name(keys), value = str_trim(values))
+}
+
+coerce_columns <- function(df) {
+  readr::type_convert(df, na = c("", "NA", "NULL", "NOT SET"))
+}
+
+normalize_meta_types <- function(df) {
+  for (nm in c(
+    "source_file",
+    "raw_file_name",
+    "task_name",
+    "user_id",
+    "session",
+    "visit_date",
+    "file_stamp",
+    "visit_id"
+  )) {
+    if (nm %in% names(df)) {
+      df[[nm]] <- as.character(df[[nm]])
+    }
+  }
+  df
+}
+
+parse_task_file <- function(path) {
+  meta <- extract_filename_meta(path)
+  lines <- readLines(path, warn = FALSE)
+
+  rows <- map(
+    lines,
+    ~ parse_kv_string(.x, item_sep = ",", kv_sep = ":") |>
+      tidyr::pivot_wider(names_from = key, values_from = value)
+  )
+
+  bind_rows(rows) |>
+    mutate(across(everything(), as.character)) |>
+    bind_cols(meta[rep(1, length(rows)), c("source_file", "raw_file_name", "visit_date", "file_stamp", "visit_id")]) |>
+    coerce_columns() |>
+    normalize_meta_types() |>
+    mutate(
+      user_id = as.character(user_id),
+      session = as.character(session),
+      task_name = as.character(game_name)
+    )
+}
+
+parse_survey_file <- function(path) {
+  meta <- extract_filename_meta(path)
+  lines <- readLines(path, warn = FALSE)
+
+  survey_row <- map(
+    lines,
+    ~ parse_kv_string(.x, item_sep = "\n", kv_sep = ":")
+  ) |>
+    bind_rows() |>
+    distinct(key, .keep_all = TRUE) |>
+    tidyr::pivot_wider(names_from = key, values_from = value)
+
+  if ("id" %in% names(survey_row)) {
+    survey_row <- rename(survey_row, survey_user_id = id)
+  }
+  if ("session" %in% names(survey_row)) {
+    survey_row <- rename(survey_row, survey_session = session)
+  }
+
+  bind_cols(survey_row, meta) |>
+    mutate(
+      across(everything(), as.character),
+      user_id = coalesce(as.character(survey_user_id), as.character(user_id)),
+      session = coalesce(as.character(survey_session), as.character(session))
+    ) |>
+    select(-any_of(c("survey_user_id", "survey_session"))) |>
+    normalize_meta_types()
+}
+
+flag_rows <- function(df, flag_type, flag_detail) {
+  df |>
+    transmute(
+      user_id,
+      visit_id,
+      session,
+      visit_date,
+      flag_type = flag_type,
+      flag_detail = flag_detail
+    )
+}
+```
+
+## Parse Raw Files
+
+```{r}
+survey_raw <- map_dfr(task_files[["Survey"]], parse_survey_file)
+symbol_raw <- map_dfr(task_files[["Symbol Search"]], parse_task_file)
+dot_raw <- map_dfr(task_files[["Dot Memory"]], parse_task_file)
+color_raw <- map_dfr(task_files[["Color Shapes"]], parse_task_file)
+```
+
+```{r}
+survey_clean <- survey_raw |>
+  transmute(
+    user_id = as.character(user_id),
+    session = as.character(session),
+    visit_id,
+    visit_date,
+    survey_file = raw_file_name,
+    survey_file_stamp = file_stamp,
+    pack = pack,
+    start_date = start_date,
+    start_time = start_time,
+    end_date = end_date,
+    end_time = end_time,
+    exit_status = exit_status,
+    exit_screen = exit_screen,
+    build_date = build_date,
+    application_version = application_version,
+    android_version = android_version,
+    device_id = device_id,
+    device_manufacturer = device_manufacturer,
+    device_model = device_model,
+    launch_type = launch_type,
+    beep_file = beep_file,
+    target_beep_time = target_beep_time,
+    actual_beep_time = actual_beep_time,
+    screen_trail = screen_trail,
+    bed_time = bed_time,
+    getup_time = getup_time,
+    sleep_quality = as.numeric(sleep_quality),
+    mindsharp = as.numeric(mindsharp),
+    concentrate = as.numeric(concentrate),
+    game_distract = as.numeric(game_distract)
+  )
+```
+
+## Score and Summarize Cognitive Tasks
+
+```{r}
+symbol_summary <- symbol_raw |>
+  mutate(
+    user_id = as.character(user_id),
+    session = as.character(session)
+  ) |>
+  score_symbol_search() |>
+  summary_symbol_search(c("user_id", "session", "visit_id"))
+
+dot_summary <- dot_raw |>
+  mutate(
+    user_id = as.character(user_id),
+    session = as.character(session)
+  ) |>
+  score_dot_memory() |>
+  summary_dot_memory(c("user_id", "session", "visit_id"))
+
+color_summary <- color_raw |>
+  mutate(
+    user_id = as.character(user_id),
+    session = as.character(session)
+  ) |>
+  score_color_shapes() |>
+  summary_color_shapes(c("user_id", "session", "visit_id"))
+```
+
+## Stitch Cleaned Visit-Level Dataset
+
+```{r}
+cleaned_visit_data <- stitch_datasets(
+  list(survey_clean, symbol_summary, dot_summary, color_summary),
+  common_id = c("user_id", "session", "visit_id")
+) |>
+  arrange(user_id, session, visit_id)
+```
+
+## Red Flag Checks
+
+```{r}
+task_counts <- bind_rows(
+  symbol_raw |>
+    count(user_id, session, visit_id, visit_date, name = "n_trials") |>
+    mutate(task_name = "Symbol Search"),
+  dot_raw |>
+    count(user_id, session, visit_id, visit_date, name = "n_trials") |>
+    mutate(task_name = "Dot Memory"),
+  color_raw |>
+    count(user_id, session, visit_id, visit_date, name = "n_trials") |>
+    mutate(task_name = "Color Shapes")
+) |>
+  mutate(expected_trials = unname(expected_trials[task_name]))
+
+all_visits <- survey_clean |>
+  select(user_id, session, visit_id, visit_date) |>
+  distinct()
+
+missing_task_flags <- crossing(
+  all_visits,
+  task_name = names(expected_trials)
+) |>
+  left_join(task_counts, by = c("user_id", "session", "visit_id", "visit_date", "task_name")) |>
+  filter(is.na(n_trials)) |>
+  transmute(
+    user_id,
+    visit_id,
+    session,
+    visit_date,
+    flag_type = "missing_task",
+    flag_detail = str_c("No raw file found for ", task_name)
+  )
+
+trial_count_flags <- task_counts |>
+  filter(n_trials != expected_trials) |>
+  transmute(
+    user_id,
+    visit_id,
+    session,
+    visit_date,
+    flag_type = "unexpected_trial_count",
+    flag_detail = str_c(task_name, ": expected ", expected_trials, " trials, found ", n_trials)
+  )
+
+survey_flags <- survey_clean |>
+  filter(
+    is.na(exit_status) |
+      exit_status != "NORMAL" |
+      is.na(sleep_quality) |
+      is.na(mindsharp) |
+      is.na(concentrate)
+  ) |>
+  mutate(
+    flag_detail = case_when(
+      is.na(exit_status) ~ "Survey exit_status is missing",
+      exit_status != "NORMAL" ~ str_c("Survey exit_status is ", exit_status),
+      is.na(sleep_quality) ~ "Survey sleep_quality is missing",
+      is.na(mindsharp) ~ "Survey mindsharp is missing",
+      is.na(concentrate) ~ "Survey concentrate is missing",
+      TRUE ~ "Survey contains a missing key field"
+    )
+  ) |>
+  transmute(
+    user_id,
+    visit_id,
+    session,
+    visit_date,
+    flag_type = "survey_issue",
+    flag_detail
+  )
+
+rt_flags <- bind_rows(
+  symbol_summary |>
+    filter(
+      SYMBOL_SEARCH.median.RT.all_trials < 250 |
+        SYMBOL_SEARCH.median.RT.all_trials > 10000
+    ) |>
+    transmute(
+      user_id,
+      visit_id,
+      session,
+      visit_date = str_extract(visit_id, "\\d{4}-\\d{2}-\\d{2}$"),
+      flag_type = "rt_outlier",
+      flag_detail = str_c(
+        "Symbol Search median RT is ",
+        round(SYMBOL_SEARCH.median.RT.all_trials, 1),
+        " ms"
+      )
+    ),
+  dot_summary |>
+    filter(
+      DOT_MEMORY.median.RT.all_trials < 250 |
+        DOT_MEMORY.median.RT.all_trials > 20000
+    ) |>
+    transmute(
+      user_id,
+      visit_id,
+      session,
+      visit_date = str_extract(visit_id, "\\d{4}-\\d{2}-\\d{2}$"),
+      flag_type = "rt_outlier",
+      flag_detail = str_c(
+        "Dot Memory median RT is ",
+        round(DOT_MEMORY.median.RT.all_trials, 1),
+        " ms"
+      )
+    ),
+  color_summary |>
+    filter(
+      COLOR_SHAPES.median.RT.all_trials < 250 |
+        COLOR_SHAPES.median.RT.all_trials > 10000
+    ) |>
+    transmute(
+      user_id,
+      visit_id,
+      session,
+      visit_date = str_extract(visit_id, "\\d{4}-\\d{2}-\\d{2}$"),
+      flag_type = "rt_outlier",
+      flag_detail = str_c(
+        "Color Shapes median RT is ",
+        round(COLOR_SHAPES.median.RT.all_trials, 1),
+        " ms"
+      )
+    )
+)
+
+accuracy_flags <- bind_rows(
+  symbol_summary |>
+    filter(SYMBOL_SEARCH.proportion.accurate.trials < 0.50) |>
+    transmute(
+      user_id,
+      visit_id,
+      session,
+      visit_date = str_extract(visit_id, "\\d{4}-\\d{2}-\\d{2}$"),
+      flag_type = "low_accuracy",
+      flag_detail = str_c(
+        "Symbol Search accuracy is ",
+        sprintf("%.1f%%", 100 * SYMBOL_SEARCH.proportion.accurate.trials)
+      )
+    ),
+  color_summary |>
+    filter(COLOR_SHAPES.CorRec.rate < 0.50) |>
+    transmute(
+      user_id,
+      visit_id,
+      session,
+      visit_date = str_extract(visit_id, "\\d{4}-\\d{2}-\\d{2}$"),
+      flag_type = "low_accuracy",
+      flag_detail = str_c(
+        "Color Shapes correct rejection rate is ",
+        sprintf("%.1f%%", 100 * COLOR_SHAPES.CorRec.rate)
+      )
+    ),
+  dot_summary |>
+    filter(DOT_MEMORY.prop.perfect.trials == 0) |>
+    transmute(
+      user_id,
+      visit_id,
+      session,
+      visit_date = str_extract(visit_id, "\\d{4}-\\d{2}-\\d{2}$"),
+      flag_type = "low_accuracy",
+      flag_detail = "Dot Memory has zero perfect trials"
+    )
+)
+
+duplicate_flags <- bind_rows(
+  survey_clean |>
+    add_count(user_id, session, visit_id) |>
+    filter(n > 1) |>
+    distinct(user_id, session, visit_id, visit_date, n) |>
+    transmute(
+      user_id,
+      visit_id,
+      session,
+      visit_date,
+      flag_type = "duplicate_visit",
+      flag_detail = str_c("Survey has ", n, " rows for this visit")
+    )
+)
+
+red_flags <- bind_rows(
+  missing_task_flags,
+  trial_count_flags,
+  survey_flags,
+  rt_flags,
+  accuracy_flags,
+  duplicate_flags
+) |>
+  distinct() |>
+  arrange(user_id, visit_date, session, flag_type)
+
+participant_flag_summary <- red_flags |>
+  count(user_id, flag_type, name = "n_flags") |>
+  arrange(desc(n_flags), user_id, flag_type)
+
+visit_compliance <- compliance_report(cleaned_visit_data, user_id) |>
+  arrange(user_id)
+```
+
+## Write Output Files
+
+```{r}
+clean_path <- file.path(output_dir, str_c("cleaned_visit_data_", timestamp, ".csv"))
+flags_path <- file.path(output_dir, str_c("red_flags_", timestamp, ".csv"))
+participant_flags_path <- file.path(output_dir, str_c("participant_red_flags_", timestamp, ".csv"))
+compliance_path <- file.path(output_dir, str_c("participant_visit_counts_", timestamp, ".csv"))
+
+write_csv(cleaned_visit_data, clean_path)
+write_csv(red_flags, flags_path)
+write_csv(participant_flag_summary, participant_flags_path)
+write_csv(visit_compliance, compliance_path)
+```
+
+## Output Files
+
+```{r}
+output_manifest <- tibble(
+  file_type = c(
+    "cleaned_data",
+    "visit_red_flags",
+    "participant_red_flags",
+    "participant_visit_counts"
+  ),
+  file_path = c(clean_path, flags_path, participant_flags_path, compliance_path)
+)
+
+kable(output_manifest)
+```
+
+## Sample Overview
+
+```{r}
+overview <- tibble(
+  dataset = c("Survey", "Symbol Search", "Dot Memory", "Color Shapes", "Final cleaned visits"),
+  n_rows = c(
+    nrow(survey_clean),
+    nrow(symbol_raw),
+    nrow(dot_raw),
+    nrow(color_raw),
+    nrow(cleaned_visit_data)
+  ),
+  n_unique_participants = c(
+    n_distinct(survey_clean$user_id),
+    n_distinct(symbol_raw$user_id),
+    n_distinct(dot_raw$user_id),
+    n_distinct(color_raw$user_id),
+    n_distinct(cleaned_visit_data$user_id)
+  )
+)
+
+kable(overview)
+```
+
+## Red Flags To Review
+
+```{r}
+if (nrow(red_flags) == 0) {
+  cat("No red flags were generated by the default checks.")
+} else {
+  kable(red_flags)
+}
+```
+
+## Participant Flag Summary
+
+```{r}
+if (nrow(participant_flag_summary) == 0) {
+  cat("No participant-level red flag counts were generated.")
+} else {
+  kable(participant_flag_summary)
+}
+```

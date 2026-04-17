@@ -1,0 +1,21 @@
+ID:325
+Session:4
+Pack:Survey
+Start Date:2024/02/22
+Start Time: 11:59:17
+End Date:2024/02/22
+End Time:11:59:25
+Exit Status:GO_MENU start_menu
+Exit Screen:before_intro
+Build Date:7/13/18 10:20 AM
+Application Version:1.1
+Android Version:9
+Device ID:a2e6832dde271fe8
+Device Manufacturer:Xiaomi
+Device Model:Redmi Note 8
+Launch Type:NORMAL_LAUNCH
+Beep File:NO_BEEP_FILE
+Target Beep Time:NOT SET
+Actual Beep Time:NOT SET
+Screen Trail:before_intro>bedtime_screen>before_intro
+bed_time:NONE_SELECTED:NONE_SELECTED NONE_SELECTED

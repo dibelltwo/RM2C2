@@ -1,0 +1,26 @@
+ID:320
+Session:3
+Pack:Survey
+Start Date:2024/01/24
+Start Time: 10:10:27
+End Date:2024/01/24
+End Time:10:15:22
+Exit Status:MINIMIZE/FORCE_CLOSE
+Exit Screen:thank_you_screen
+Build Date:7/13/18 10:20 AM
+Application Version:1.1
+Android Version:9
+Device ID:a2e6832dde271fe8
+Device Manufacturer:Xiaomi
+Device Model:Redmi Note 8
+Launch Type:NORMAL_LAUNCH
+Beep File:NO_BEEP_FILE
+Target Beep Time:NOT SET
+Actual Beep Time:NOT SET
+Screen Trail:before_intro>bedtime_screen>Getuptime_screen>sleep_quality_screen>mindsharp_screen>concentrate_screen>SymbolSearch_intro_screen>game_Symbol>game_Symbol___game>DotMem_intro_screen>game_DotMemory>game_DotMemory___game>MemBinding_intro_screen>game_MemBinding>game_MemBinding___game>game_distract_screen>thank_you_screen
+bed_time:11:45 PM
+getup_time:7:00 AM
+sleep_quality:80
+mindsharp:70
+concentrate:70
+game_distract:59

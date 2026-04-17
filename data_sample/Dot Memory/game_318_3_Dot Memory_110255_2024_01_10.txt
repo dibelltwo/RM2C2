@@ -1,0 +1,3 @@
+game_name:Dot Memory,user_id:318,session:3,time:2024/01/10 11:00:36,trial_num:1,dot_locations: 2_2 4_0 1_3,user_answers: 1_3 2_2 4_0,response_time:9468,ef_locations:0_4_1 0_4_3 0_4_7 0_3_1 0_1_4
+game_name:Dot Memory,user_id:318,session:3,time:2024/01/10 11:00:54,trial_num:2,dot_locations: 3_2 2_1 4_4,user_answers: 2_1 3_2 4_4,response_time:3791,ef_locations:0_4_7 0_2_6 0_1_2 0_0_2 0_2_1 0_0_3
+game_name:Dot Memory,user_id:318,session:3,time:2024/01/10 11:01:12,trial_num:3,dot_locations: 1_0 0_4 3_2,user_answers: 0_4 1_0 3_2,response_time:4904,ef_locations:0_3_3 0_2_3 0_3_4 0_1_5 0_1_7 0_0_6 1_4_4 1_0_5 1_1_3

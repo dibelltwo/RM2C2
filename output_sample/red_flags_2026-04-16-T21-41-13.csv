@@ -1,0 +1,187 @@
+user_id,visit_id,session,visit_date,flag_type,flag_detail
+305,305_1_2023-08-02,1,2023-08-02,low_accuracy,Color Shapes correct rejection rate is 40.0%
+305,305_2_2023-08-02,2,2023-08-02,low_accuracy,Dot Memory has zero perfect trials
+305,305_3_2023-08-02,3,2023-08-02,low_accuracy,Color Shapes correct rejection rate is 40.0%
+306,306_1_2023-08-08,1,2023-08-08,low_accuracy,Color Shapes correct rejection rate is 20.0%
+306,306_2_2023-08-08,2,2023-08-08,low_accuracy,Color Shapes correct rejection rate is 20.0%
+306,306_2_2023-08-08,2,2023-08-08,low_accuracy,Dot Memory has zero perfect trials
+309,309_1_2023-09-12,1,2023-09-12,low_accuracy,Dot Memory has zero perfect trials
+309,309_2_2023-09-12,2,2023-09-12,low_accuracy,Color Shapes correct rejection rate is 20.0%
+309,309_2_2023-09-12,2,2023-09-12,low_accuracy,Dot Memory has zero perfect trials
+312,312_1_2023-09-12,1,2023-09-12,low_accuracy,Color Shapes correct rejection rate is 0.0%
+312,312_1_2023-09-12,1,2023-09-12,low_accuracy,Dot Memory has zero perfect trials
+313,313_1_2023-11-14,1,2023-11-14,low_accuracy,Dot Memory has zero perfect trials
+313,313_2_2023-11-14,2,2023-11-14,low_accuracy,Color Shapes correct rejection rate is 0.0%
+313,313_2_2023-11-14,2,2023-11-14,low_accuracy,Dot Memory has zero perfect trials
+313,313_3_2023-11-14,3,2023-11-14,low_accuracy,Color Shapes correct rejection rate is 0.0%
+313,313_3_2023-11-14,3,2023-11-14,low_accuracy,Dot Memory has zero perfect trials
+314,314_1_2023-09-14,1,2023-09-14,low_accuracy,Color Shapes correct rejection rate is 0.0%
+314,314_3_2023-09-14,3,2023-09-14,low_accuracy,Color Shapes correct rejection rate is 20.0%
+315,315_2_2023-10-11,2,2023-10-11,low_accuracy,Color Shapes correct rejection rate is 20.0%
+315,315_2_2023-10-11,2,2023-10-11,low_accuracy,Dot Memory has zero perfect trials
+315,315_3_2023-10-11,3,2023-10-11,low_accuracy,Color Shapes correct rejection rate is 40.0%
+317,317_1_2023-10-13,1,2023-10-13,low_accuracy,Color Shapes correct rejection rate is 20.0%
+317,317_1_2023-10-13,1,2023-10-13,low_accuracy,Dot Memory has zero perfect trials
+317,317_2_2023-10-13,2,2023-10-13,low_accuracy,Color Shapes correct rejection rate is 0.0%
+317,317_2_2023-10-13,2,2023-10-13,low_accuracy,Dot Memory has zero perfect trials
+317,317_3_2023-10-13,3,2023-10-13,low_accuracy,Color Shapes correct rejection rate is 20.0%
+317,317_3_2023-10-13,3,2023-10-13,low_accuracy,Dot Memory has zero perfect trials
+318,318_1_2024-01-10,1,2024-01-10,low_accuracy,Color Shapes correct rejection rate is 20.0%
+318,318_3_2024-01-10,3,2024-01-10,duplicate_visit,Survey has 2 rows for this visit
+318,318_3_2024-01-10,3,2024-01-10,survey_issue,Survey exit_status is MINIMIZE/FORCE_CLOSE
+318,318_3_2024-01-10,3,2024-01-10,survey_issue,Survey exit_status is TIMED_OUT
+318,318_3_2024-01-10,3,2024-01-10,unexpected_trial_count,"Symbol Search: expected 18 trials, found 36"
+318,318_3_2024-01-10,3,2024-01-10,unexpected_trial_count,"Dot Memory: expected 3 trials, found 6"
+318,318_3_2024-01-10,3,2024-01-10,unexpected_trial_count,"Color Shapes: expected 10 trials, found 20"
+319,319_1_2024-01-05,1,2024-01-05,low_accuracy,Color Shapes correct rejection rate is 0.0%
+319,319_2_2024-01-05,2,2024-01-05,low_accuracy,Color Shapes correct rejection rate is 40.0%
+319,319_2_2024-01-05,2,2024-01-05,low_accuracy,Dot Memory has zero perfect trials
+319,319_3_2024-01-05,3,2024-01-05,low_accuracy,Color Shapes correct rejection rate is 40.0%
+320,320_2_2024-01-24,2,2024-01-24,low_accuracy,Color Shapes correct rejection rate is 40.0%
+320,320_3_2024-01-24,3,2024-01-24,duplicate_visit,Survey has 2 rows for this visit
+320,320_3_2024-01-24,3,2024-01-24,low_accuracy,Color Shapes correct rejection rate is 20.0%
+320,320_3_2024-01-24,3,2024-01-24,survey_issue,Survey exit_status is MINIMIZE/FORCE_CLOSE
+320,320_3_2024-01-24,3,2024-01-24,survey_issue,Survey exit_status is TIMED_OUT
+320,320_3_2024-01-24,3,2024-01-24,unexpected_trial_count,"Symbol Search: expected 18 trials, found 36"
+320,320_3_2024-01-24,3,2024-01-24,unexpected_trial_count,"Dot Memory: expected 3 trials, found 6"
+320,320_3_2024-01-24,3,2024-01-24,unexpected_trial_count,"Color Shapes: expected 10 trials, found 20"
+321,321_1_2024-02-05,1,2024-02-05,low_accuracy,Color Shapes correct rejection rate is 40.0%
+321,321_1_2024-02-05,1,2024-02-05,low_accuracy,Dot Memory has zero perfect trials
+321,321_2_2024-02-05,2,2024-02-05,low_accuracy,Color Shapes correct rejection rate is 0.0%
+321,321_3_2024-02-05,3,2024-02-05,low_accuracy,Color Shapes correct rejection rate is -40.0%
+321,321_3_2024-02-05,3,2024-02-05,low_accuracy,Dot Memory has zero perfect trials
+322,322_1_2024-02-13,1,2024-02-13,low_accuracy,Dot Memory has zero perfect trials
+322,322_2_2024-02-13,2,2024-02-13,low_accuracy,Dot Memory has zero perfect trials
+322,322_3_2024-02-13,3,2024-02-13,low_accuracy,Dot Memory has zero perfect trials
+323,323_2_2024-02-19,2,2024-02-19,low_accuracy,Color Shapes correct rejection rate is 20.0%
+323,323_2_2024-02-19,2,2024-02-19,low_accuracy,Dot Memory has zero perfect trials
+323,323_3_2024-02-19,3,2024-02-19,low_accuracy,Color Shapes correct rejection rate is 40.0%
+324,324_1_2024-02-28,1,2024-02-28,duplicate_visit,Survey has 2 rows for this visit
+324,324_1_2024-02-28,1,2024-02-28,survey_issue,Survey exit_status is MINIMIZE/FORCE_CLOSE
+324,324_1_2024-02-28,1,2024-02-28,unexpected_trial_count,"Symbol Search: expected 18 trials, found 36"
+324,324_2_2024-02-28,2,2024-02-28,low_accuracy,Color Shapes correct rejection rate is 20.0%
+324,324_2_2024-02-28,2,2024-02-28,low_accuracy,Dot Memory has zero perfect trials
+324,324_3_2024-02-28,3,2024-02-28,low_accuracy,Dot Memory has zero perfect trials
+325,325_1_2024-02-22,1,2024-02-22,low_accuracy,Dot Memory has zero perfect trials
+325,325_2_2024-02-22,2,2024-02-22,duplicate_visit,Survey has 2 rows for this visit
+325,325_2_2024-02-22,2,2024-02-22,low_accuracy,Color Shapes correct rejection rate is 20.0%
+325,325_2_2024-02-22,2,2024-02-22,survey_issue,Survey exit_status is MINIMIZE/FORCE_CLOSE
+325,325_2_2024-02-22,2,2024-02-22,unexpected_trial_count,"Symbol Search: expected 18 trials, found 36"
+325,325_2_2024-02-22,2,2024-02-22,unexpected_trial_count,"Dot Memory: expected 3 trials, found 6"
+325,325_2_2024-02-22,2,2024-02-22,unexpected_trial_count,"Color Shapes: expected 10 trials, found 20"
+325,325_4_2024-02-22,4,2024-02-22,missing_task,No raw file found for Color Shapes
+325,325_4_2024-02-22,4,2024-02-22,missing_task,No raw file found for Dot Memory
+325,325_4_2024-02-22,4,2024-02-22,missing_task,No raw file found for Symbol Search
+325,325_4_2024-02-22,4,2024-02-22,survey_issue,Survey exit_status is GO_MENU start_menu
+326,326_1_2024-03-11,1,2024-03-11,low_accuracy,Color Shapes correct rejection rate is 40.0%
+326,326_2_2024-03-11,2,2024-03-11,low_accuracy,Color Shapes correct rejection rate is 20.0%
+326,326_3_2024-03-11,3,2024-03-11,low_accuracy,Dot Memory has zero perfect trials
+327,327_1_2024-03-14,1,2024-03-14,low_accuracy,Color Shapes correct rejection rate is 20.0%
+327,327_2_2024-03-14,2,2024-03-14,low_accuracy,Color Shapes correct rejection rate is 40.0%
+327,327_2_2024-03-14,2,2024-03-14,low_accuracy,Dot Memory has zero perfect trials
+327,327_3_2024-03-14,3,2024-03-14,low_accuracy,Dot Memory has zero perfect trials
+328,328_1_2024-03-26,1,2024-03-26,low_accuracy,Color Shapes correct rejection rate is 40.0%
+328,328_2_2024-03-26,2,2024-03-26,low_accuracy,Color Shapes correct rejection rate is 40.0%
+328,328_2_2024-03-26,2,2024-03-26,low_accuracy,Dot Memory has zero perfect trials
+328,328_3_2024-03-26,3,2024-03-26,low_accuracy,Color Shapes correct rejection rate is 20.0%
+329,329_1_2024-04-02,1,2024-04-02,low_accuracy,Color Shapes correct rejection rate is 0.0%
+329,329_1_2024-04-02,1,2024-04-02,low_accuracy,Dot Memory has zero perfect trials
+329,329_2_2024-04-02,2,2024-04-02,low_accuracy,Color Shapes correct rejection rate is 0.0%
+329,329_2_2024-04-02,2,2024-04-02,low_accuracy,Dot Memory has zero perfect trials
+329,329_3_2024-04-02,3,2024-04-02,low_accuracy,Color Shapes correct rejection rate is -20.0%
+329,329_3_2024-04-02,3,2024-04-02,low_accuracy,Dot Memory has zero perfect trials
+330,330_1_2024-04-11,1,2024-04-11,low_accuracy,Color Shapes correct rejection rate is 20.0%
+330,330_2_2024-04-11,2,2024-04-11,low_accuracy,Color Shapes correct rejection rate is 40.0%
+331,331_1_2024-04-29,1,2024-04-29,low_accuracy,Dot Memory has zero perfect trials
+331,331_2_2024-04-29,2,2024-04-29,low_accuracy,Dot Memory has zero perfect trials
+331,331_3_2024-04-29,3,2024-04-29,low_accuracy,Color Shapes correct rejection rate is 20.0%
+332,332_1_2024-07-10,1,2024-07-10,low_accuracy,Color Shapes correct rejection rate is 40.0%
+332,332_1_2024-07-10,1,2024-07-10,low_accuracy,Dot Memory has zero perfect trials
+332,332_2_2024-07-10,2,2024-07-10,low_accuracy,Color Shapes correct rejection rate is 0.0%
+332,332_2_2024-07-10,2,2024-07-10,low_accuracy,Dot Memory has zero perfect trials
+332,332_3_2024-07-10,3,2024-07-10,low_accuracy,Color Shapes correct rejection rate is 20.0%
+332,332_3_2024-07-10,3,2024-07-10,low_accuracy,Dot Memory has zero perfect trials
+333,333_1_2024-05-09,1,2024-05-09,low_accuracy,Color Shapes correct rejection rate is -20.0%
+333,333_2_2024-05-09,2,2024-05-09,low_accuracy,Color Shapes correct rejection rate is 0.0%
+333,333_3_2024-05-09,3,2024-05-09,low_accuracy,Color Shapes correct rejection rate is 20.0%
+333,333_4_2024-05-09,4,2024-05-09,missing_task,No raw file found for Color Shapes
+333,333_4_2024-05-09,4,2024-05-09,missing_task,No raw file found for Dot Memory
+333,333_4_2024-05-09,4,2024-05-09,missing_task,No raw file found for Symbol Search
+333,333_4_2024-05-09,4,2024-05-09,survey_issue,Survey exit_status is GO_MENU start_menu
+334,334_1_2024-05-07,1,2024-05-07,low_accuracy,Color Shapes correct rejection rate is 20.0%
+334,334_1_2024-05-07,1,2024-05-07,low_accuracy,Dot Memory has zero perfect trials
+334,334_3_2024-05-07,3,2024-05-07,low_accuracy,Color Shapes correct rejection rate is 40.0%
+335,335_1_2024-05-13,1,2024-05-13,low_accuracy,Color Shapes correct rejection rate is 20.0%
+335,335_1_2024-05-13,1,2024-05-13,low_accuracy,Dot Memory has zero perfect trials
+335,335_2_2024-05-13,2,2024-05-13,low_accuracy,Color Shapes correct rejection rate is 20.0%
+336,336_2_2024-05-23,2,2024-05-23,low_accuracy,Color Shapes correct rejection rate is 20.0%
+337,337_1_2024-07-24,1,2024-07-24,low_accuracy,Color Shapes correct rejection rate is 40.0%
+337,337_2_2024-07-24,2,2024-07-24,low_accuracy,Color Shapes correct rejection rate is 0.0%
+337,337_2_2024-07-24,2,2024-07-24,low_accuracy,Dot Memory has zero perfect trials
+337,337_3_2024-07-24,3,2024-07-24,low_accuracy,Color Shapes correct rejection rate is 20.0%
+338,338_1_2024-07-15,1,2024-07-15,low_accuracy,Color Shapes correct rejection rate is 20.0%
+338,338_1_2024-07-15,1,2024-07-15,low_accuracy,Dot Memory has zero perfect trials
+338,338_2_2024-07-15,2,2024-07-15,low_accuracy,Dot Memory has zero perfect trials
+338,338_3_2024-07-15,3,2024-07-15,low_accuracy,Dot Memory has zero perfect trials
+339,339_2_2024-07-22,2,2024-07-22,low_accuracy,Dot Memory has zero perfect trials
+339,339_3_2024-07-22,3,2024-07-22,low_accuracy,Dot Memory has zero perfect trials
+340,340_1_2024-07-30,1,2024-07-30,low_accuracy,Color Shapes correct rejection rate is 0.0%
+340,340_1_2024-07-30,1,2024-07-30,low_accuracy,Dot Memory has zero perfect trials
+340,340_2_2024-07-30,2,2024-07-30,low_accuracy,Color Shapes correct rejection rate is -40.0%
+340,340_2_2024-07-30,2,2024-07-30,low_accuracy,Dot Memory has zero perfect trials
+340,340_3_2024-07-30,3,2024-07-30,low_accuracy,Color Shapes correct rejection rate is 0.0%
+341,341_1_2024-08-12,1,2024-08-12,low_accuracy,Color Shapes correct rejection rate is 0.0%
+341,341_1_2024-08-12,1,2024-08-12,low_accuracy,Dot Memory has zero perfect trials
+341,341_2_2024-08-12,2,2024-08-12,low_accuracy,Color Shapes correct rejection rate is -40.0%
+341,341_2_2024-08-12,2,2024-08-12,low_accuracy,Dot Memory has zero perfect trials
+341,341_3_2024-08-12,3,2024-08-12,low_accuracy,Color Shapes correct rejection rate is 0.0%
+341,341_3_2024-08-12,3,2024-08-12,low_accuracy,Dot Memory has zero perfect trials
+342,342_2_2024-08-19,2,2024-08-19,low_accuracy,Color Shapes correct rejection rate is 40.0%
+342,342_2_2024-08-19,2,2024-08-19,low_accuracy,Dot Memory has zero perfect trials
+342,342_3_2024-08-19,3,2024-08-19,low_accuracy,Color Shapes correct rejection rate is 40.0%
+342,342_3_2024-08-19,3,2024-08-19,low_accuracy,Dot Memory has zero perfect trials
+343,343_1_2024-08-29,1,2024-08-29,low_accuracy,Color Shapes correct rejection rate is 20.0%
+343,343_2_2024-08-29,2,2024-08-29,low_accuracy,Color Shapes correct rejection rate is 20.0%
+343,343_2_2024-08-29,2,2024-08-29,low_accuracy,Dot Memory has zero perfect trials
+343,343_3_2024-08-29,3,2024-08-29,low_accuracy,Dot Memory has zero perfect trials
+346,346_1_2024-09-19,1,2024-09-19,low_accuracy,Dot Memory has zero perfect trials
+346,346_2_2024-09-19,2,2024-09-19,low_accuracy,Color Shapes correct rejection rate is 40.0%
+346,346_2_2024-09-19,2,2024-09-19,low_accuracy,Dot Memory has zero perfect trials
+347,347_1_2024-09-23,1,2024-09-23,low_accuracy,Dot Memory has zero perfect trials
+347,347_2_2024-09-23,2,2024-09-23,low_accuracy,Color Shapes correct rejection rate is 0.0%
+347,347_3_2024-09-23,3,2024-09-23,low_accuracy,Color Shapes correct rejection rate is 20.0%
+348,348_1_2024-10-01,1,2024-10-01,low_accuracy,Color Shapes correct rejection rate is 40.0%
+349,349_1_2024-09-24,1,2024-09-24,low_accuracy,Dot Memory has zero perfect trials
+349,349_2_2024-09-24,2,2024-09-24,low_accuracy,Dot Memory has zero perfect trials
+349,349_3_2024-09-24,3,2024-09-24,low_accuracy,Dot Memory has zero perfect trials
+351,351_2_2024-09-26,2,2024-09-26,low_accuracy,Color Shapes correct rejection rate is 40.0%
+351,351_3_2024-09-26,3,2024-09-26,low_accuracy,Dot Memory has zero perfect trials
+352,352_1_2024-11-21,1,2024-11-21,low_accuracy,Dot Memory has zero perfect trials
+353,353_2_2024-10-21,2,2024-10-21,low_accuracy,Dot Memory has zero perfect trials
+353,353_3_2024-10-21,3,2024-10-21,low_accuracy,Color Shapes correct rejection rate is 40.0%
+353,353_3_2024-10-21,3,2024-10-21,low_accuracy,Dot Memory has zero perfect trials
+353,353_4_2024-10-21,4,2024-10-21,low_accuracy,Color Shapes correct rejection rate is 0.0%
+353,353_4_2024-10-21,4,2024-10-21,low_accuracy,Dot Memory has zero perfect trials
+354,354_1_2024-10-29,1,2024-10-29,duplicate_visit,Survey has 2 rows for this visit
+354,354_1_2024-10-29,1,2024-10-29,low_accuracy,Dot Memory has zero perfect trials
+354,354_1_2024-10-29,1,2024-10-29,survey_issue,Survey exit_status is MINIMIZE/FORCE_CLOSE
+354,354_1_2024-10-29,1,2024-10-29,unexpected_trial_count,"Symbol Search: expected 18 trials, found 36"
+354,354_1_2024-10-29,1,2024-10-29,unexpected_trial_count,"Dot Memory: expected 3 trials, found 6"
+354,354_1_2024-10-29,1,2024-10-29,unexpected_trial_count,"Color Shapes: expected 10 trials, found 20"
+354,354_2_2024-10-29,2,2024-10-29,low_accuracy,Color Shapes correct rejection rate is 40.0%
+355,355_1_2024-11-07,1,2024-11-07,low_accuracy,Color Shapes correct rejection rate is 0.0%
+356,356_1_2024-11-26,1,2024-11-26,low_accuracy,Dot Memory has zero perfect trials
+357,357_1_2024-12-04,1,2024-12-04,low_accuracy,Color Shapes correct rejection rate is 40.0%
+359,359_1_2024-12-12,1,2024-12-12,low_accuracy,Dot Memory has zero perfect trials
+359,359_2_2024-12-12,2,2024-12-12,low_accuracy,Color Shapes correct rejection rate is 40.0%
+359,359_2_2024-12-12,2,2024-12-12,low_accuracy,Dot Memory has zero perfect trials
+359,359_3_2024-12-12,3,2024-12-12,low_accuracy,Color Shapes correct rejection rate is 40.0%
+359,359_3_2024-12-12,3,2024-12-12,low_accuracy,Dot Memory has zero perfect trials
+360,360_1_2025-01-15,1,2025-01-15,low_accuracy,Color Shapes correct rejection rate is 20.0%
+360,360_2_2025-01-15,2,2025-01-15,low_accuracy,Color Shapes correct rejection rate is 20.0%
+360,360_2_2025-01-15,2,2025-01-15,low_accuracy,Dot Memory has zero perfect trials
+360,360_3_2025-01-15,3,2025-01-15,low_accuracy,Dot Memory has zero perfect trials
+361,361_1_2025-01-31,1,2025-01-31,low_accuracy,Color Shapes correct rejection rate is 20.0%
+361,361_1_2025-01-31,1,2025-01-31,low_accuracy,Dot Memory has zero perfect trials
+361,361_2_2025-01-31,2,2025-01-31,low_accuracy,Color Shapes correct rejection rate is 20.0%
+361,361_3_2025-01-31,3,2025-01-31,low_accuracy,Dot Memory has zero perfect trials
