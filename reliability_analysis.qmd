@@ -1,0 +1,477 @@
+---
+title: "RM2C2 Cognitive Assessment: Reliability for One-Time Use"
+format:
+  html:
+    toc: true
+    df-print: paged
+params:
+  raw_dir: "data_sample"
+  output_dir: "output_sample"
+  n_boot: 2000
+  n_boot_baseline: 4000
+  condition_file: ""
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+## Purpose
+
+The M2C2 tasks were designed for ecological momentary assessment: very short
+blocks administered many times, where reliability is built up by *averaging
+across occasions* rather than by depth at any single one. This study uses them
+differently — as **one-time measures** — so the question this report answers is:
+
+> Is a single administration of each task precise enough to rank participants?
+
+That is a different question from the one the EMA reliability literature
+answers, and it needs a different coefficient. This report leads with the
+single-administration answer and reports the EMA-style coefficients second, with
+the reasons they do not apply here.
+
+### Design constraints that shape the analysis
+
+- **Crossover with an intervention.** Occasion-to-occasion differences carry a
+  treatment effect, so within-person variance across sessions is not natural
+  fluctuation. Session 1 is a clean pre-intervention baseline; sessions 2 and 3
+  are not.
+- **Sessions are ~15 minutes apart** (median gap 14.9 min, whole protocol inside
+  a ~30-minute window). Even without an intervention there is almost no
+  day-to-day, sleep, or time-of-day variation for an EMA-style within-person
+  coefficient to detect.
+- **Baseline is the first occasion per participant, not `session == 1`.**
+  Participants 351 and 353 have no session 1 — their sessions run 2, 3, 4. Since
+  both completed three sessions like everyone else, that is a session-counter
+  offset rather than a missing baseline, so taking the first occasion keeps all
+  52 participants instead of dropping to 50.
+
+## Method
+
+### Primary: single-administration generalizability
+
+For a one-time measure the relevant facet is **trials within one occasion**. The
+coefficient is the generalizability of a person's score over that facet:
+
+$$G = \frac{\text{Var}(person)}{\text{Var}(person) + \frac{\text{Var}(trial)}{i}}$$
+
+estimated from `value ~ 1 + (1 | person)` on trial-level data restricted to the
+baseline occasion. This is the same algebraic form as Equation 2 of Sliwinski et
+al. (2018) with the *person* facet in the numerator instead of the occasion
+facet — appropriate because a one-time measure is used to separate people, not
+to track change.
+
+Three companions are reported alongside it:
+
+- **Split-half with Spearman-Brown**, the familiar form for reviewers.
+- **SEM ÷ between-person SD.** The standard error of a single person's score
+  relative to the spread across people. This is the most directly interpretable
+  number for one-time use: at 0.4 an individual score is usable, at 0.9 it
+  carries almost no individual-level information.
+- **Trials required** to reach G = 0.70 and 0.80 at a single administration,
+  by Spearman-Brown on the trial facet.
+
+### Secondary: the EMA coefficients, and why they are not the answer here
+
+Reported for completeness, following Sliwinski, Mogle, Hyun, Munoz, Smyth, &
+Lipton (2018), *Assessment*, 25(1), 14–30
+([doi:10.1177/1073191116643164](https://doi.org/10.1177/1073191116643164)):
+
+$$\text{BP Reliability} = \frac{\text{Var}(BP)}{\text{Var}(BP) + \frac{\text{Var}(WP)}{n}}
+\qquad
+\text{WP Reliability} = \frac{\text{Var}(WP_{occasion})}{\text{Var}(WP_{occasion}) + \frac{\text{Var}(WP_{trial})}{i}}$$
+
+`n` is the number of **assessments averaged per person** — not the sample size.
+It reaches 56–70 in the original protocol and caps at 3 here.
+
+Two cautions apply to this study:
+
+- **WP Reliability is biased upward by the crossover.** `Var(WP_occasion)` is
+  meant to be natural fluctuation; here it absorbs the treatment effect, so a
+  working intervention inflates what looks like measurement reliability.
+- **BP Reliability at `n` > 1 describes an averaged score**, which is not how
+  these measures are being used.
+
+### Task mapping
+
+| Sliwinski et al. (2018) | This dataset | Trials/occasion |
+|---|---|---|
+| Symbol search — median RT of correct trials (12 trials) | Symbol Search — median RT of accurate trials | 18 |
+| Dot memory — Euclidean-distance error score (2 trials) | Dot Memory — Euclidean-distance error score | 3 trials / 9 dots |
+| N-back — proportion correct, odd/even split, `i` = 2 | Color Shapes — CorRec (HIT − FA), odd/even split, `i` = 2 | 10 → `i` = 2 |
+
+Color Shapes takes the n-back handling because CorRec needs both change and
+no-change trials, so a single trial cannot yield a score.
+
+## Setup
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(purrr)
+library(readr)
+library(stringr)
+library(tibble)
+library(knitr)
+library(lme4)
+```
+
+```{r}
+raw_dir <- params$raw_dir
+output_dir <- params$output_dir
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+
+timestamp <- format(Sys.time(), "%Y-%m-%d-T%H-%M-%S")
+
+rm2c2_version <- numeric_version(read.dcf("DESCRIPTION", fields = "Version")[[1]])
+packageVersion <- function(pkg) {
+  if (identical(pkg, "RM2C2")) return(rm2c2_version)
+  utils::packageVersion(pkg)
+}
+
+source(file.path("R", "add_to.R"))
+source(file.path("R", "mult_by.R"))
+source(file.path("R", "distance.R"))
+source(file.path("R", "SDT_adj.R"))
+source(file.path("R", "score_symbol_search.R"))
+source(file.path("R", "score_dot_memory.R"))
+source(file.path("R", "score_color_shapes.R"))
+source(file.path("R", "sample_data_prep.R"))
+
+prepared <- prepare_sample_data(raw_dir)
+```
+
+## Build Scores
+
+```{r}
+add_session <- function(d) mutate(d, session = as.numeric(str_split_i(occasion, "_", 2)))
+
+symbol_scored <- prepared$symbol_raw |> score_symbol_search()
+dot_scored    <- prepared$dot_raw |> score_dot_memory() |> ungroup()
+color_scored  <- prepared$color_raw |> score_color_shapes()
+
+# Unit-level tables (one row per trial, or per odd/even half for Color Shapes)
+ss_unit <- symbol_scored |>
+  filter(accuracy == 1, !is.na(response_time)) |>
+  transmute(person = user_id, occasion = visit_id, trial = as.character(trial_num),
+            value = response_time)
+
+dm_unit <- dot_scored |>
+  transmute(person = user_id, occasion = visit_id, trial = as.character(trial_num),
+            value = (r1_distance + r2_distance + r3_distance) / 3)
+
+# Dot-level alternative: the trial facet is 9 dots, not 3 trials.
+dm_unit_dot <- dot_scored |>
+  select(person = user_id, occasion = visit_id, trial_num,
+         r1_distance, r2_distance, r3_distance) |>
+  pivot_longer(starts_with("r"), names_to = "dot", values_to = "value") |>
+  transmute(person, occasion, trial = paste0(trial_num, "_", dot), value)
+
+cs_unit <- color_scored |>
+  rename(person = user_id, occasion = visit_id) |>
+  mutate(half = if_else(trial_num %% 2 == 1, "odd", "even")) |>
+  group_by(person, occasion, half) |>
+  summarise(value = sum(HIT) / sum(trial_type == 1) - sum(FA) / sum(trial_type == 0),
+            .groups = "drop") |>
+  rename(trial = half)
+```
+
+```{r}
+ss_occ <- ss_unit |> group_by(person, occasion) |>
+  summarise(score = median(value), .groups = "drop")
+dm_occ <- dm_unit |> group_by(person, occasion) |>
+  summarise(score = mean(value), .groups = "drop")
+cs_occ <- color_scored |>
+  rename(person = user_id, occasion = visit_id) |>
+  group_by(person, occasion) |>
+  summarise(score = sum(HIT) / sum(trial_type == 1) - sum(FA) / sum(trial_type == 0),
+            .groups = "drop")
+
+# Baseline = first occasion per participant (keeps 351 and 353).
+baseline_ids <- add_session(ss_occ) |>
+  group_by(person) |> slice_min(session, n = 1) |> ungroup() |>
+  select(person, occasion)
+
+kable(
+  tibble(
+    quantity = c("participants", "baseline occasions", "all occasions",
+                 "participants with session == 1"),
+    n = c(n_distinct(ss_occ$person), nrow(baseline_ids), nrow(ss_occ),
+          n_distinct(add_session(ss_occ) |> filter(session == 1) |> pull(person)))
+  ),
+  caption = "Sample. Baseline takes the first occasion per participant."
+)
+```
+
+## Primary: Single-Administration Reliability at Baseline
+
+```{r}
+# Method-of-moments person/trial decomposition - closed form, so the bootstrap
+# below stays cheap.
+g_components <- function(u) {
+  per <- u |> group_by(person) |> summarise(i = n(), m = mean(value), .groups = "drop")
+  N <- sum(per$i); P <- nrow(per); gm <- weighted.mean(per$m, per$i)
+  MS_B <- sum(per$i * (per$m - gm)^2) / (P - 1)
+  MS_W <- (u |> left_join(per, by = "person") |>
+             summarise(s = sum((value - m)^2)) |> pull(s)) / (N - P)
+  i0 <- (N - sum(per$i^2) / N) / (P - 1)
+  Vp <- (MS_B - MS_W) / i0
+  list(Vp = Vp, Vt = MS_W, i = mean(per$i),
+       G = Vp / (Vp + MS_W / mean(per$i)))
+}
+
+split_half_sb <- function(u) {
+  h <- u |>
+    mutate(h = if_else(as.integer(factor(trial)) %% 2 == 1, "a", "b")) |>
+    group_by(person, h) |> summarise(m = mean(value), .groups = "drop") |>
+    pivot_wider(names_from = h, values_from = m)
+  r <- cor(h$a, h$b, use = "complete.obs")
+  2 * r / (1 + r)
+}
+```
+
+```{r}
+# trials_per_unit: Color Shapes units are 5-trial halves, the others are trials.
+baseline_units <- list(
+  "Symbol Search (median RT, accurate trials)" = list(u = ss_unit,     occ = ss_occ, tpu = 1),
+  "Dot Memory (trial-level error)"             = list(u = dm_unit,     occ = dm_occ, tpu = 1),
+  "Dot Memory (dot-level error)"               = list(u = dm_unit_dot, occ = dm_occ, tpu = 1),
+  "Color Shapes (CorRec, odd/even halves)"     = list(u = cs_unit,     occ = cs_occ, tpu = 5)
+) |>
+  map(function(x) {
+    x$u <- semi_join(x$u, baseline_ids, by = c("person", "occasion"))
+    x$occ <- semi_join(x$occ, baseline_ids, by = c("person", "occasion"))
+    x
+  })
+
+baseline <- imap_dfr(baseline_units, function(x, nm) {
+  g <- g_components(x$u)
+  need <- function(target) ceiling((target * g$Vt) / ((1 - target) * g$Vp)) * x$tpu
+  tibble(
+    task = nm,
+    i = g$i,
+    trials = g$i * x$tpu,
+    Var_person = g$Vp,
+    Var_trial = g$Vt,
+    G = g$G,
+    split_half_SB = split_half_sb(x$u),
+    SD_between = sd(x$occ$score),
+    SEM = sqrt(g$Vt / g$i),
+    SEM_over_SD = sqrt(g$Vt / g$i) / sqrt(max(g$Vp, 0) + g$Vt / g$i),
+    trials_for_0.70 = need(0.70),
+    trials_for_0.80 = need(0.80)
+  )
+})
+
+kable(baseline |> select(task, trials, G, split_half_SB, SEM, SD_between, SEM_over_SD),
+      digits = 3,
+      caption = "Single administration at baseline (n = 52). SEM_over_SD is the precision of one person's score relative to the between-person spread.")
+```
+
+```{r}
+kable(baseline |> select(task, trials, `trials_for_0.70`, `trials_for_0.80`),
+      caption = "Trials a single administration would need to reach these coefficients.")
+```
+
+### Bootstrap
+
+```{r}
+set.seed(20260906)
+baseline_cache <- file.path(output_dir,
+                            str_c("baseline_G_boot_", params$n_boot_baseline, ".rds"))
+
+persons <- sort(unique(baseline_ids$person))
+bsplit <- map(baseline_units,
+              ~ split(.x$u |> select(person, value), .x$u$person)[as.character(persons)])
+
+baseline_boot <- if (file.exists(baseline_cache)) readRDS(baseline_cache) else
+  map_dfr(seq_len(params$n_boot_baseline), function(b) {
+    j <- sample(seq_along(persons), length(persons), replace = TRUE)
+    tag <- seq_along(j)
+    imap_dfr(bsplit, function(s, nm) {
+      u <- bind_rows(map2(s[j], tag, ~ mutate(.x, person = .y)))
+      tibble(task = nm, G = g_components(u)$G)
+    })
+  })
+
+if (!file.exists(baseline_cache)) saveRDS(baseline_boot, baseline_cache)
+
+baseline_ci <- baseline_boot |>
+  group_by(task) |>
+  summarise(`G 95% CI` = sprintf("[%.2f, %.2f]", quantile(G, .025), quantile(G, .975)),
+            .groups = "drop")
+
+kable(baseline |> select(task, G) |> left_join(baseline_ci, by = "task"), digits = 3,
+      caption = paste0("Percentile bootstrap over participants, B = ", params$n_boot_baseline, "."))
+```
+
+### Alternative dependent variables for the weak tasks
+
+```{r}
+alt_dvs <- list(
+  "Color Shapes - CorRec (HIT-FA), halves"   = list(u = cs_unit, tpu = 5),
+  "Color Shapes - trial-level accuracy"      = list(
+    u = color_scored |> transmute(person = user_id, occasion = visit_id,
+                                  trial = as.character(trial_num),
+                                  value = HIT + CR), tpu = 1),
+  "Color Shapes - proportion correct, halves" = list(
+    u = color_scored |> rename(person = user_id, occasion = visit_id) |>
+      mutate(h = if_else(trial_num %% 2 == 1, "odd", "even")) |>
+      group_by(person, occasion, h) |> summarise(value = mean(HIT + CR), .groups = "drop") |>
+      rename(trial = h), tpu = 5)
+) |> map(function(x) { x$u <- semi_join(x$u, baseline_ids, by = c("person", "occasion")); x })
+
+kable(imap_dfr(alt_dvs, function(x, nm) {
+  g <- g_components(x$u)
+  tibble(DV = nm, i = g$i, G = g$G,
+         trials_for_0.80 = ceiling((0.80 * g$Vt) / ((1 - 0.80) * g$Vp)) * x$tpu)
+}), digits = 3, caption = "Color Shapes under alternative scoring, single administration.")
+```
+
+## Secondary: EMA Coefficients Across All Occasions
+
+The two tables below apply Equations 1 and 2 to all 155 occasions. **They do not
+answer this study's question.** Equation 2 in particular is inflated by the
+crossover: with an intervention between sessions, `Var(WP_occasion)` contains the
+treatment effect rather than natural fluctuation.
+
+```{r}
+vc_person_occasion <- function(d) {
+  # d: one row per OCCASION (occasion-level score). Residual is Var(WP_occasion).
+  m <- lmer(score ~ 1 + (1 | person), data = d, REML = TRUE)
+  v <- as.data.frame(VarCorr(m))
+  list(BP = v$vcov[v$grp == "person"], WP = v$vcov[v$grp == "Residual"])
+}
+vc_occasion_trial <- function(d) {
+  # d: one row per TRIAL. Residual is the trial facet; person:occasion is the
+  # within-person occasion facet.
+  m <- lmer(value ~ 1 + (1 | person) + (1 | person:occasion), data = d, REML = TRUE)
+  v <- as.data.frame(VarCorr(m))
+  list(WPocc = v$vcov[v$grp == "person:occasion"], WPtrial = v$vcov[v$grp == "Residual"])
+}
+bp_reliability <- function(BP, WP, n) BP / (BP + WP / n)
+wp_reliability <- function(WPocc, WPtrial, i) WPocc / (WPocc + WPtrial / i)
+
+ema_tasks <- list(
+  "Symbol Search (median RT, accurate trials)" = list(occ = ss_occ, trial = ss_unit),
+  "Dot Memory (Euclidean error distance)"      = list(occ = dm_occ, trial = dm_unit),
+  "Color Shapes (CorRec = HIT - FA)"           = list(occ = cs_occ, trial = cs_unit)
+)
+
+ema <- imap_dfr(ema_tasks, function(t, nm) {
+  a <- vc_person_occasion(t$occ); b <- vc_occasion_trial(t$trial)
+  i <- mean(t$trial |> count(person, occasion) |> pull(n))
+  tibble(task = nm, i = i,
+         `ICC (n = 1)` = bp_reliability(a$BP, a$WP, 1),
+         `BP rel (n = 3)` = bp_reliability(a$BP, a$WP, 3),
+         `WP rel (contaminated)` = wp_reliability(b$WPocc, b$WPtrial, i))
+})
+
+kable(ema, digits = 3,
+      caption = "Equations 1 and 2 across all occasions. WP is confounded with the intervention.")
+```
+
+```{r}
+retest <- imap_dfr(ema_tasks, function(t, nm) {
+  w <- add_session(t$occ) |> filter(session %in% 1:2) |>
+    select(person, session, score) |>
+    pivot_wider(names_from = session, values_from = score, names_prefix = "s")
+  tibble(task = nm, n_pairs = sum(complete.cases(w)),
+         `r(session 1, 2)` = cor(w$s1, w$s2, use = "complete.obs"))
+})
+
+kable(retest, digits = 3,
+      caption = "Session 1 to 2 correlation. NOT test-retest: session 2 is post-intervention.")
+```
+
+## Condition-Adjusted Analysis
+
+Supplying a randomization file at `params$condition_file` (a CSV with `person`,
+`session`, and `condition`) lets the treatment effect be modelled as a fixed
+effect, so the residual occasion variance is interpretable as fluctuation rather
+than as the intervention working.
+
+```{r}
+if (nzchar(params$condition_file) && file.exists(params$condition_file)) {
+  conditions <- read_csv(params$condition_file, show_col_types = FALSE) |>
+    mutate(person = as.character(person), session = as.numeric(session))
+
+  cond_adj <- imap_dfr(ema_tasks, function(t, nm) {
+    u <- add_session(t$trial) |>
+      left_join(conditions, by = c("person", "session")) |>
+      filter(!is.na(condition))
+    m <- lmer(value ~ condition + (1 | person) + (1 | person:occasion), data = u, REML = TRUE)
+    v <- as.data.frame(VarCorr(m))
+    i <- mean(u |> count(person, occasion) |> pull(n))
+    tibble(task = nm, i = i,
+           `WP rel (condition-adjusted)` = wp_reliability(
+             v$vcov[v$grp == "person:occasion"], v$vcov[v$grp == "Residual"], i))
+  })
+  kable(cond_adj, digits = 3,
+        caption = "Within-person reliability net of the treatment effect.")
+} else {
+  cat("No condition file supplied. Set params$condition_file to the randomization CSV",
+      "(columns: person, session, condition) to run this section.")
+}
+```
+
+## Write Output Files
+
+```{r}
+baseline_path <- file.path(output_dir, str_c("onetime_reliability_", timestamp, ".csv"))
+ema_path <- file.path(output_dir, str_c("ema_reliability_", timestamp, ".csv"))
+
+baseline_out <- baseline |> left_join(baseline_ci, by = "task")
+write_csv(baseline_out, baseline_path)
+write_csv(ema, ema_path)
+
+kable(tibble(
+  file_type = c("one_time_reliability", "ema_reliability"),
+  file_path = c(baseline_path, ema_path)
+))
+```
+
+## Conclusions
+
+```{r}
+kable(baseline_out |> select(task, trials, G, `G 95% CI`, SEM_over_SD, trials_for_0.80),
+      digits = 3)
+```
+
+**Symbol Search is adequate as a one-time measure.** G ≈ 0.86 with an SEM about
+0.4 of the between-person SD. Eighteen RT trials is already more than the twelve
+needed for 0.80, so it is doing what a one-time measure needs to do.
+
+**Dot Memory is marginal, and should be scored at the dot level.** Treating the
+trial facet as 9 dots rather than 3 trials raises G from ≈0.42 to ≈0.60 on
+exactly the same data — the current trial-level score discards usable
+information. Even so it falls short of 0.80, which would need roughly 8 trials
+rather than 3. Usable for group comparisons, not for individual-level inference.
+
+**Color Shapes should not be used as a one-time individual-difference measure.**
+G ≈ 0.14, and the SEM is ~96% of the between-person SD: a single score is nearly
+as uncertain as the entire spread across participants. No dependent variable
+rescues it — proportion correct is the best of the three tried and still only
+reaches ≈0.25. The cause is structural: between-person variance is small
+relative to binomial noise at 10 trials, so reaching 0.80 would take on the order
+of 120+ trials. Reporting a low coefficient and proceeding would be worse than
+stating plainly that one administration cannot support person-level conclusions.
+
+**The general point.** These tasks are short by design because the EMA protocol
+recovers reliability by averaging ~56 occasions — Equation 1 does that work, and
+at `n = 56` even a weak single-occasion score reaches 0.97. Used once, each task
+is left with only what one short block supports. Symbol Search has enough trials
+to survive the change of context; the other two do not.
+
+### Caveats
+
+- Bootstrap intervals reflect participant sampling only, not trial-level
+  resampling within a participant.
+- No transformations were applied, following the original study. RT and error
+  distance are both right-skewed; a log transform is worth testing before
+  publication.
+- Odd/even splitting a 10-trial task does not preserve Color Shapes' 5/5
+  change balance — halves carry 1–4 change trials, so CorRec takes only 13
+  distinct values at half length and 79 of 310 halves sit at ceiling.
+- The baseline analysis assumes session 1 is genuinely pre-intervention for all
+  participants, including 351 and 353 whose first occasion is labelled session 2.
